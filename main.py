@@ -5,10 +5,11 @@ from movimentacoes import (
     calcular_saldo,
     excluir_movimentacao,
     editar_movimentacao,
-    exportar_csv
+    exportar_csv,
+    buscar_por_categoria,
+    buscar_por_data
 )
 
-# Garante que o banco e a tabela existam ao iniciar
 criar_tabela()
 
 while True:
@@ -20,8 +21,10 @@ while True:
     print("3 - Ver saldo")
     print("4 - Editar movimentação")
     print("5 - Excluir movimentação")
-    print("6 - Exportar relatório (CSV)")
-    print("7 - Sair")
+    print("6 - Buscar por categoria")
+    print("7 - Buscar por intervalo de datas")
+    print("8 - Exportar relatório (CSV)")
+    print("9 - Sair")
 
     opcao = input("\nEscolha uma opção: ")
 
@@ -36,8 +39,12 @@ while True:
     elif opcao == "5":
         excluir_movimentacao()
     elif opcao == "6":
-        exportar_csv()
+        buscar_por_categoria()
     elif opcao == "7":
+        buscar_por_data()
+    elif opcao == "8":
+        exportar_csv()
+    elif opcao == "9":
         print("\nPrograma encerrado. Até mais!")
         break
     else:

@@ -226,3 +226,84 @@ def exportar_csv():
         f"\nRelatório exportado com sucesso! Arquivo salvo em: {caminho_arquivo}"
     )
 
+# Buscar movimentações por categoria
+def buscar_por_categoria():
+    categoria_busca = input("\nDigite a categoria que deseja buscar: ").strip()
+
+    if not categoria_busca:
+        print("A categoria não pode ficar vazia.")
+        return
+
+    conexao = conectar()
+    cursor = conexao.cursor()
+
+    # Usa LIKE para permitir buscas parciais e insensíveis a maiúsculas/minúsculas
+    cursor.execute("""
+        SELECT id, descricao, valor, tipo, categoria, data
+        FROM movimentacoes
+        WHERE categoria LIKE ?
+    """, (f"%{categoria_busca}%",))
+
+    movimentacoes = cursor.fetchall()
+    conexao.close()
+
+    print(f"\n===== RESULTADOS PARA CATEGORIA: '{categoria_busca}' =====")
+
+    if not movimentacoes:
+        print("Nenhuma movimentação encontrada para essa categoria.")
+        return
+
+    for mov in movimentacoes:
+        print(
+            f"ID: {mov[0]} | "
+            f"Descrição: {mov[1]} | "
+            f"Valor: R$ {mov[2]:.2f} | "
+            f"Tipo: {mov[3]} | "
+            f"Categoria: {mov[4]} | "
+            f"Data: {mov[5]}"
+        )
+
+# Buscar movimentações por intervalo de datas
+def buscar_por_data():
+    print("\n--- BUSCA POR PERÍODO ---")
+    data_inicio = input("Data inicial (DD/MM/AAAA): ").strip()
+    data_fim = input("Data final (DD/MM/AAAA): ").strip()
+
+    if not data_inicio or not data_fim:
+        print("Ambas as datas devem ser preenchidas.")
+        return
+
+    conexao = conectar()
+    cursor = conexao.cursor()
+
+    # Como as datas estão salvas no formato texto (DD/MM/AAAA),
+    # filtramos convertendo para o padrão ordenável AAAA-MM-DD diretamente na query SQL
+    cursor.execute("""
+        SELECT id, descricao, valor, tipo, categoria, data
+        FROM movimentacoes
+        WHERE 
+            (SUBSTR(data, 7, 4) || '-' || SUBSTR(data, 4, 2) || '-' || SUBSTR(data, 1, 2))
+            BETWEEN 
+            (SUBSTR(?, 7, 4) || '-' || SUBSTR(?, 4, 2) || '-' || SUBSTR(?, 1, 2))
+            AND 
+            (SUBSTR(?, 7, 4) || '-' || SUBSTR(?, 4, 2) || '-' || SUBSTR(?, 1, 2))
+    """, (data_inicio, data_fim))
+
+    movimentacoes = cursor.fetchall()
+    conexao.close()
+
+    print(f"\n===== MOVIMENTAÇÕES DE {data_inicio} ATÉ {data_fim} =====")
+
+    if not movimentacoes:
+        print("Nenhuma movimentação encontrada neste período.")
+        return
+
+    for mov in movimentacoes:
+        print(
+            f"ID: {mov[0]} | "
+            f"Descrição: {mov[1]} | "
+            f"Valor: R$ {mov[2]:.2f} | "
+            f"Tipo: {mov[3]} | "
+            f"Categoria: {mov[4]} | "
+            f"Data: {mov[5]}"
+        )
