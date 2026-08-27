@@ -1,4 +1,24 @@
+# Ambientes Virtuais
+venv/
+.venv/
+env/
+
+# Cache do Python
 __pycache__/
 *.pyc
-financeiro.db
+
+# Arquivos de Compilação do PyInstaller
+build/
+dist/
+
+# Bancos de Dados Locais (Proteção de dados)
+*.db
+*.sqlite
+*.sqlite3
+
+# Variáveis de Ambiente
 .env
+
+# Configurações de Editores
+.vscode/
+.idea/
