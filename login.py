@@ -11,7 +11,7 @@ ctk.set_default_color_theme("blue")
 
 
 def arredondar_imagem(caminho_imagem, tamanho=(48, 48), raio=12):
-    """Carrega a imagem, redimensiona para a caixa maior e aplica cantos arredondados."""
+    """Carrega a imagem, redimensiona e aplica cantos arredondados."""
     img = Image.open(caminho_imagem).convert("RGBA").resize(tamanho, Image.Resampling.LANCZOS)
     
     mascara = Image.new("L", tamanho, 0)
@@ -22,23 +22,28 @@ def arredondar_imagem(caminho_imagem, tamanho=(48, 48), raio=12):
     return img
 
 
-class TelaLoginMicrosoft(ctk.CTk):
+class TelaLoginUnsainted(ctk.CTk):
 
     def __init__(self, callback_sucesso):
         super().__init__()
 
-        # Garante que as tabelas do banco estejam criadas
         criar_tabela()
 
         self.callback_sucesso = callback_sucesso
 
         self.title("Acesso ao Sistema")
+
+        # Define o ícone da barra de título e da barra de tarefas
+        try:
+            self.iconbitmap("meu_icone.ico")
+        except Exception:
+            pass
+
         self.geometry("800x600")
         self.minsize(500, 500)
         self.configure(fg_color="#f2f2f2")
 
-        # Estado do fluxo da tela principal
-        self.etapa_atual = "usuario"  # 'usuario' ou 'senha'
+        self.etapa_atual = "usuario"
         self.usuario_atual = ""
         self.senha_banco_atual = ""
         self.mostrar_senha = False
@@ -49,7 +54,6 @@ class TelaLoginMicrosoft(ctk.CTk):
         self._criar_interface()
 
     def _criar_interface(self):
-        # Card Centralizado (Estilo Microsoft)
         self.card = ctk.CTkFrame(
             self,
             width=420,
@@ -63,13 +67,8 @@ class TelaLoginMicrosoft(ctk.CTk):
         self.card.grid_propagate(False)
         self.card.grid_columnconfigure(0, weight=1)
 
-        # ------------------------------------------------------------------
-        # LOGO COM CAIXA AUMENTADA (48x48) + TÍTULO
-        # ------------------------------------------------------------------
         try:
-            # Imagem aumentada para 48x48 com cantos arredondados (raio=12)
             img_arredondada = arredondar_imagem("logo.png", tamanho=(48, 48), raio=12)
-            
             imagem_logo = ctk.CTkImage(
                 light_image=img_arredondada,
                 dark_image=img_arredondada,
@@ -93,7 +92,6 @@ class TelaLoginMicrosoft(ctk.CTk):
 
         self.lbl_logo.pack(anchor="w", padx=40, pady=(35, 10))
 
-        # Título da Etapa
         self.lbl_titulo = ctk.CTkLabel(
             self.card,
             text="Entrar",
@@ -102,7 +100,6 @@ class TelaLoginMicrosoft(ctk.CTk):
         )
         self.lbl_titulo.pack(anchor="w", padx=40, pady=(0, 20))
 
-        # Campo de Entrada Principal
         self.frame_campo = ctk.CTkFrame(self.card, fg_color="transparent")
         self.frame_campo.pack(fill="x", padx=40, pady=5)
 
@@ -129,7 +126,6 @@ class TelaLoginMicrosoft(ctk.CTk):
             command=self._alternar_visibilidade_senha,
         )
 
-        # Link Secundário (Criar conta)
         self.lbl_link = ctk.CTkLabel(
             self.card,
             text="Não tem uma conta? Crie uma!",
@@ -140,7 +136,6 @@ class TelaLoginMicrosoft(ctk.CTk):
         self.lbl_link.pack(anchor="w", padx=40, pady=(15, 0))
         self.lbl_link.bind("<Button-1>", lambda e: self._abrir_modal_cadastro())
 
-        # Frame de Botões (Voltar / Avançar)
         self.frame_botoes = ctk.CTkFrame(self.card, fg_color="transparent")
         self.frame_botoes.pack(anchor="e", padx=40, pady=(35, 20))
 
@@ -171,7 +166,7 @@ class TelaLoginMicrosoft(ctk.CTk):
         self.bind("<Return>", lambda event: self._processar_avanco())
 
     # ----------------------------------------------------------------------
-    # CONSULTAS SQLITE
+    # BANCO DE DADOS
     # ----------------------------------------------------------------------
     def _buscar_usuario_banco(self, usuario):
         with sqlite3.connect(NOME_BANCO) as conexao:
@@ -181,20 +176,25 @@ class TelaLoginMicrosoft(ctk.CTk):
             return resultado[0] if resultado else None
 
     def _cadastrar_usuario_banco(self, usuario, senha):
-        try:
-            with sqlite3.connect(NOME_BANCO) as conexao:
-                cursor = conexao.cursor()
+        with sqlite3.connect(NOME_BANCO) as conexao:
+            cursor = conexao.cursor()
+            
+            cursor.execute("SELECT id FROM usuarios WHERE usuario = ?", (usuario,))
+            if cursor.fetchone() is not None:
+                return "DUPLICADO"
+
+            try:
                 cursor.execute(
                     "INSERT INTO usuarios (usuario, senha) VALUES (?, ?)",
                     (usuario, senha),
                 )
                 conexao.commit()
-            return True
-        except sqlite3.IntegrityError:
-            return False
+                return "SUCESSO"
+            except sqlite3.Error:
+                return "ERRO"
 
     # ----------------------------------------------------------------------
-    # NAVEGAÇÃO ENTRE PASSOS (ENTRAR)
+    # FLUXO DE LOGIN
     # ----------------------------------------------------------------------
     def _processar_avanco(self):
         if self.etapa_atual == "usuario":
@@ -252,32 +252,58 @@ class TelaLoginMicrosoft(ctk.CTk):
             self.btn_olho.configure(text="👁️")
 
     # ----------------------------------------------------------------------
-    # MODAL DE CADASTRO (COM TOGLE DE SENHA REATORADO)
+    # JANELA DE CADASTRO
     # ----------------------------------------------------------------------
     def _abrir_modal_cadastro(self):
         janela_cad = ctk.CTkToplevel(self)
         janela_cad.title("Criar conta")
         janela_cad.geometry("380x350")
+        janela_cad.configure(fg_color="#ffffff")
         janela_cad.grab_set()
+
+        try:
+            janela_cad.iconbitmap("meu_icone.ico")
+        except Exception:
+            pass
 
         lbl = ctk.CTkLabel(
             janela_cad,
             text="Criar nova conta",
-            font=ctk.CTkFont(size=18, weight="bold"),
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color="#1b1b1b"
         )
-        lbl.pack(pady=(20, 15))
+        lbl.pack(pady=(25, 15))
 
-        txt_u = ctk.CTkEntry(janela_cad, placeholder_text="Novo Usuário", width=280, height=35)
+        txt_u = ctk.CTkEntry(
+            janela_cad,
+            placeholder_text="Escolha um Usuário",
+            width=280,
+            height=38,
+            fg_color="#ffffff",
+            border_color="#8a8a8a",
+            border_width=1,
+            corner_radius=2,
+            text_color="#1b1b1b"
+        )
         txt_u.pack(pady=8)
 
-        # Container para o campo de senha + olho no cadastro
         frame_s = ctk.CTkFrame(janela_cad, fg_color="transparent")
         frame_s.pack(pady=8, padx=50, fill="x")
 
-        txt_s = ctk.CTkEntry(frame_s, placeholder_text="Nova Senha", show="*", height=35)
+        txt_s = ctk.CTkEntry(
+            frame_s,
+            placeholder_text="Crie uma Senha",
+            show="*",
+            height=38,
+            fg_color="#ffffff",
+            border_color="#8a8a8a",
+            border_width=1,
+            corner_radius=2,
+            text_color="#1b1b1b"
+        )
         txt_s.pack(side="left", expand=True, fill="x")
 
-        mostrar_senha_cad = [False]  # Uso de lista para alterar valor dentro do escopo interno
+        mostrar_senha_cad = [False]
 
         def alternar_senha_cad():
             mostrar_senha_cad[0] = not mostrar_senha_cad[0]
@@ -291,11 +317,12 @@ class TelaLoginMicrosoft(ctk.CTk):
         btn_olho_cad = ctk.CTkButton(
             frame_s,
             text="👁️",
-            width=35,
-            height=35,
+            width=38,
+            height=38,
             fg_color="#f0f0f0",
             hover_color="#e0e0e0",
             text_color="#000000",
+            corner_radius=2,
             command=alternar_senha_cad,
         )
         btn_olho_cad.pack(side="right", padx=(5, 0))
@@ -306,20 +333,30 @@ class TelaLoginMicrosoft(ctk.CTk):
                 messagebox.showwarning("Atenção", "Preencha todos os campos.")
                 return
 
-            sucesso = self._cadastrar_usuario_banco(u, s)
-            if sucesso:
+            status = self._cadastrar_usuario_banco(u, s)
+            
+            if status == "DUPLICADO":
+                messagebox.showerror(
+                    "Usuário Indisponível",
+                    f"O nome de usuário '{u}' já está em uso.\nPor favor, escolha um nome diferente!"
+                )
+                txt_u.delete(0, "end")
+                txt_u.focus()
+            elif status == "SUCESSO":
                 messagebox.showinfo("Sucesso", "Conta criada com sucesso! Você já pode entrar.")
                 janela_cad.destroy()
             else:
-                messagebox.showerror("Erro", "Este nome de usuário já está cadastrado.")
+                messagebox.showerror("Erro", "Ocorreu um erro ao salvar o cadastro.")
 
         btn = ctk.CTkButton(
             janela_cad,
             text="Cadastrar Conta",
             fg_color="#0067b8",
             hover_color="#005da6",
-            height=35,
+            height=38,
             width=280,
+            corner_radius=2,
+            font=ctk.CTkFont(weight="bold"),
             command=salvar,
         )
         btn.pack(pady=20)
@@ -332,5 +369,5 @@ if __name__ == "__main__":
         app = AppFinanceiro()
         app.mainloop()
 
-    tela = TelaLoginMicrosoft(callback_sucesso=iniciar_app_principal)
+    tela = TelaLoginUnsainted(callback_sucesso=iniciar_app_principal)
     tela.mainloop()
