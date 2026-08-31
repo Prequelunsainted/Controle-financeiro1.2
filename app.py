@@ -502,7 +502,7 @@ class AppFinanceiro(ctk.CTk):
         self.lbl_val_receita.configure(text=formatar_moeda(rec))
         self.lbl_val_despesa.configure(text=formatar_moeda(desp))
 
-        cor_saldo = "#EEFF00" if saldo >= 0 else "#FF5555"
+        cor_saldo = "#33FF00" if saldo >= 0 else "#FF5555"
         self.lbl_val_saldo.configure(text=formatar_moeda(saldo), text_color=cor_saldo)
 
         # 2. Atualiza Tabela

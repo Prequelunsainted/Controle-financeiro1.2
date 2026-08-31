@@ -1,24 +1,17 @@
-# Ambientes Virtuais
-venv/
-.venv/
-env/
+# Arquivos de compilação do PyInstaller
+build/
+dist/
+*.spec
 
 # Cache do Python
 __pycache__/
 *.pyc
 
-# Arquivos de Compilação do PyInstaller
-build/
-dist/
-
-# Bancos de Dados Locais (Proteção de dados)
+# Banco de dados local e variáveis de ambiente
 *.db
-*.sqlite
-*.sqlite3
-
-# Variáveis de Ambiente
 .env
 
-# Configurações de Editores
-.vscode/
-.idea/
+# Ambientes virtuais (se usar venv ou env)
+venv/
+env/
+.venv/
