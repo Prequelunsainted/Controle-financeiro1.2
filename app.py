@@ -5,6 +5,7 @@ from tkinter import ttk, messagebox
 import customtkinter as ctk
 from PIL import Image
 from tkcalendar import Calendar
+from PIL import Image, ImageEnhance
 
 # Matplotlib para o Dashboard integrado ao Tkinter
 import matplotlib
@@ -281,11 +282,13 @@ class AppFinanceiro(ctk.CTk):
         aba.grid_rowconfigure(0, weight=1)
         aba.grid_columnconfigure(0, weight=1)
 
+        # Frame Principal
         frame_tb = ctk.CTkFrame(aba, fg_color="transparent")
         frame_tb.grid(row=0, column=0, sticky="nsew")
         frame_tb.grid_rowconfigure(0, weight=1)
         frame_tb.grid_columnconfigure(0, weight=1)
 
+        # 1. Tabela (Treeview)
         colunas = ("id", "descricao", "categoria", "tipo", "valor", "data")
         self.tabela = ttk.Treeview(frame_tb, columns=colunas, show="headings", style="Treeview")
 
@@ -332,9 +335,30 @@ class AppFinanceiro(ctk.CTk):
         self.tabela.grid(row=0, column=0, sticky="nsew")
         scrollbar.grid(row=0, column=1, sticky="ns")
 
-        # Barra de Ações na parte inferior da aba
+        # 2. Container de Ações com Marca d'Água Centralizada
         frame_acoes = ctk.CTkFrame(aba, fg_color="transparent")
-        frame_acoes.grid(row=1, column=0, pady=(8, 0), sticky="ew")
+        frame_acoes.grid(row=1, column=0, pady=(10, 0), sticky="ew")
+
+        # Marca d'água no centro da área inferior de botões
+        caminho_base = os.path.dirname(os.path.abspath(__file__))
+        caminho_logo = os.path.join(caminho_base, "titanus.png")
+
+        if os.path.exists(caminho_logo):
+            try:
+                img_pil = Image.open(caminho_logo).convert("RGBA")
+                datas = img_pil.getdata()
+                novos_dados = []
+                for item in datas:
+                    novos_dados.append((item[0], item[1], item[2], int(item[3] * 0.25)))
+                img_pil.putdata(novos_dados)
+
+                img_pil.thumbnail((45, 45), Image.Resampling.LANCZOS)
+                self.img_kaiju_tk = ctk.CTkImage(light_image=img_pil, dark_image=img_pil, size=img_pil.size)
+
+                lbl_kaiju = ctk.CTkLabel(frame_acoes, image=self.img_kaiju_tk, text="")
+                lbl_kaiju.place(relx=0.5, rely=0.5, anchor="center")
+            except Exception:
+                pass
 
         ctk.CTkButton(
             frame_acoes, text="✏️ Editar Selecionada", width=140, command=self._modal_editar
@@ -349,7 +373,6 @@ class AppFinanceiro(ctk.CTk):
             command=self._confirmar_exclusao,
         ).pack(side="left")
 
-        # Botão de Exportar CSV posicionado no canto direito da barra inferior
         ctk.CTkButton(
             frame_acoes,
             text="📁 Exportar Relatório CSV",
