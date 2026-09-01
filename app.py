@@ -151,7 +151,7 @@ class AppFinanceiro(ctk.CTk):
             self.card_receita, text="Receitas", font=ctk.CTkFont(size=12, weight="bold"), text_color="#aaaaaa"
         ).pack(pady=(12, 2))
         self.lbl_val_receita = ctk.CTkLabel(
-            self.card_receita, text="R$ 0,00", font=ctk.CTkFont(size=18, weight="bold"), text_color="#2FA572"
+            self.card_receita, text="R$ 0,00", font=ctk.CTkFont(size=18, weight="bold"), text_color="#00f0ff"
         )
         self.lbl_val_receita.pack(pady=(0, 12))
 
@@ -306,12 +306,13 @@ class AppFinanceiro(ctk.CTk):
         self.tabela.column("valor", width=150, anchor="e")
         self.tabela.column("data", width=120, anchor="center")
 
+        # Configuração das cores da tabela
         style = ttk.Style()
         style.theme_use("default")
         style.configure(
             "Treeview",
             background="#1e222d",
-            foreground="#ffffff",
+            foreground="#e2e8f0",  # Texto padronizado em branco suave
             rowheight=32,
             fieldbackground="#1e222d",
             borderwidth=0,
@@ -324,10 +325,11 @@ class AppFinanceiro(ctk.CTk):
             font=("Segoe UI", 10, "bold"),
             relief="flat",
         )
-        style.map("Treeview", background=[("selected", "#2b4c7e")])
+        style.map("Treeview", background=[("selected", "#3b2d54")])  # Destaque de seleção em roxo escuro
 
-        self.tabela.tag_configure("receita", foreground="#00FF0D")
-        self.tabela.tag_configure("despesa", foreground="#FF0000")
+        # Tags com tons elegantes de Roxo/Ciano para Receita e Magenta/Coral para Despesa
+        self.tabela.tag_configure("receita", foreground="#00f0ff")  # Ciano/Violeta
+        self.tabela.tag_configure("despesa", foreground="#ff5577")  # Magenta/Coral sutil
 
         scrollbar = ctk.CTkScrollbar(frame_tb, orientation="vertical", command=self.tabela.yview)
         self.tabela.configure(yscrollcommand=scrollbar.set)
@@ -537,7 +539,7 @@ class AppFinanceiro(ctk.CTk):
         self.lbl_val_receita.configure(text=formatar_moeda(rec))
         self.lbl_val_despesa.configure(text=formatar_moeda(desp))
 
-        cor_saldo = "#33FF00" if saldo >= 0 else "#FF5555"
+        cor_saldo = "#00c9a7" if saldo >= 0 else "#ff5577"
         self.lbl_val_saldo.configure(text=formatar_moeda(saldo), text_color=cor_saldo)
 
         for item in self.tabela.get_children():
