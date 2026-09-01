@@ -9,7 +9,7 @@ gerenciador = GerenciadorFinanceiro()
 
 while True:
     print("\n================================")
-    print("       💰 FINANCE CONTROL    ")
+    print("       🐋 Titanus Finance Control    ")
     print("================================")
     print("1 - Adicionar movimentação")
     print("2 - Listar movimentações")

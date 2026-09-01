@@ -48,12 +48,16 @@ class AppFinanceiro(ctk.CTk):
         self.formulario_visivel = False
 
         # Configurações da Janela Principal
-        self.title("Finance Control — Gestão Financeira Pessoal")
+        self.title("Titanus Finance Control — Gestão Financeira Pessoal")
         self.geometry("1100x880")
         self.minsize(950, 700)
 
         # Configuração do Grid Principal
+        # Configuração do Grid Principal (Abas na linha 5 expandem, rodapé fica visível na linha 6)
         self.grid_rowconfigure(5, weight=1)
+        self.grid_rowconfigure(6, weight=0)
+        self.grid_columnconfigure(0, weight=1)
+
         self.grid_columnconfigure(0, weight=1)
 
         # 1. Cabeçalho Minimalista
@@ -62,17 +66,17 @@ class AppFinanceiro(ctk.CTk):
         # 2. Cards Financeiros (KPIs)
         self._criar_cards_financeiros()
 
-        # 3. Formulário de Cadastro (Criado mas inicialmente oculto)
-        self._criar_formulario_cadastro()
+        # 3. Cards Financeiros (KPIs)
+        self._criar_cards_financeiros()
 
-        # 4. Filtros Avançados
+        # 4. Filtros Avançados (Agrupado na linha 3)
         self._criar_area_filtros()
 
-        # 5. Dashboard / Gráficos + Tabela de Movimentações (Abas)
-        self._criar_conteudo_principal()
+        # 5. Formulário de Cadastro (Agrupado na linha 4, logo abaixo do filtro)
+        self._criar_formulario_cadastro()
 
-        # 6. Rodapé e Ações Secundárias
-        self._criar_rodape()
+        # 6. Dashboard / Gráficos + Tabela de Movimentações (Abas)
+        self._criar_conteudo_principal()
 
         # Carregamento Inicial dos Dados
         self._atualizar_interface()
@@ -85,19 +89,34 @@ class AppFinanceiro(ctk.CTk):
         frame_cabecalho = ctk.CTkFrame(self, fg_color="transparent")
         frame_cabecalho.grid(row=0, column=0, padx=25, pady=(15, 5), sticky="ew")
 
-        # Lado Esquerdo: Título e Subtítulo
+        # Lado Esquerdo: Imagem + Títulos
         frame_titulos = ctk.CTkFrame(frame_cabecalho, fg_color="transparent")
         frame_titulos.pack(side="left", anchor="w")
 
+        # Caminho absoluto garantido para encontrar "titanus.png" na mesma pasta do script
+        caminho_base = os.path.dirname(os.path.abspath(__file__))
+        caminho_logo = os.path.join(caminho_base, "titanus.png")
+
+        if os.path.exists(caminho_logo):
+            img_pil = Image.open(caminho_logo)
+            self.img_behemoth = ctk.CTkImage(
+                light_image=img_pil, dark_image=img_pil, size=(40, 40)
+            )
+            lbl_img = ctk.CTkLabel(frame_titulos, image=self.img_behemoth, text="")
+            lbl_img.pack(side="left", padx=(0, 12))
+
+        frame_textos = ctk.CTkFrame(frame_titulos, fg_color="transparent")
+        frame_textos.pack(side="left", anchor="w")
+
         lbl_titulo = ctk.CTkLabel(
-            frame_titulos,
-            text="💰 Finance Control",
+            frame_textos,
+            text="Titanus Finance Control",
             font=ctk.CTkFont(size=24, weight="bold"),
         )
         lbl_titulo.pack(anchor="w")
 
         lbl_subtitulo = ctk.CTkLabel(
-            frame_titulos,
+            frame_textos,
             text="Controle suas finanças de forma simples e intuitiva",
             font=ctk.CTkFont(size=13),
             text_color="#999999",
@@ -159,9 +178,7 @@ class AppFinanceiro(ctk.CTk):
 
     def _criar_formulario_cadastro(self):
         self.frame_input = ctk.CTkFrame(self, corner_radius=10)
-        # Inicialmente NÃO executamos .grid() aqui para que ele comece escondido.
 
-        # Layout dos Campos
         self.txt_desc = ctk.CTkEntry(self.frame_input, placeholder_text="Descrição (ex: Supermercado)")
         self.txt_desc.pack(side="left", padx=8, pady=12, expand=True, fill="x")
 
@@ -176,7 +193,6 @@ class AppFinanceiro(ctk.CTk):
         self.combo_categoria.set("Alimentação")
         self.combo_categoria.pack(side="left", padx=4, pady=12)
 
-        # Campo Data
         self.txt_data_add = ctk.CTkEntry(self.frame_input, placeholder_text="DD/MM/AAAA", width=110)
         self.txt_data_add.pack(side="left", padx=(4, 0), pady=12)
 
@@ -185,13 +201,11 @@ class AppFinanceiro(ctk.CTk):
         )
         btn_cal.pack(side="left", padx=(2, 8), pady=12)
 
-        # Botão Salvar
         btn_salvar = ctk.CTkButton(
             self.frame_input, text="💾 Salvar", width=90, font=ctk.CTkFont(weight="bold"), command=self._adicionar_registro
         )
         btn_salvar.pack(side="left", padx=(0, 4), pady=12)
 
-        # Botão Fechar Formulário
         btn_fechar = ctk.CTkButton(
             self.frame_input,
             text="✖️",
@@ -203,7 +217,6 @@ class AppFinanceiro(ctk.CTk):
         btn_fechar.pack(side="left", padx=(0, 8), pady=12)
 
     def _alternar_formulario(self):
-        """Alterna a visibilidade do formulário de cadastro."""
         if self.formulario_visivel:
             self.frame_input.grid_forget()
             self.btn_toggle_form.configure(text="➕ Nova Movimentação", fg_color="#1f538d")
@@ -216,19 +229,17 @@ class AppFinanceiro(ctk.CTk):
 
     def _criar_area_filtros(self):
         frame_filtro = ctk.CTkFrame(self, fg_color="transparent")
-        frame_filtro.grid(row=4, column=0, padx=25, pady=(5, 5), sticky="ew")
+        frame_filtro.grid(row=3, column=0, padx=25, pady=(5, 5), sticky="ew")
 
         lbl_icon = ctk.CTkLabel(frame_filtro, text="🔍 Filtros:", font=ctk.CTkFont(weight="bold"))
         lbl_icon.pack(side="left", padx=(0, 8))
 
-        # Filtro Por Tipo
         self.combo_filtro_tipo = ctk.CTkComboBox(
             frame_filtro, values=["Todos", "Receita", "Despesa"], width=110, command=lambda c: self._atualizar_interface()
         )
         self.combo_filtro_tipo.set("Todos")
         self.combo_filtro_tipo.pack(side="left", padx=4)
 
-        # Filtro Por Categoria
         cats_filtro = ["Todas"] + CATEGORIAS_PADRAO
         self.combo_filtro_cat = ctk.CTkComboBox(
             frame_filtro, values=cats_filtro, width=130, command=lambda c: self._atualizar_interface()
@@ -236,7 +247,6 @@ class AppFinanceiro(ctk.CTk):
         self.combo_filtro_cat.set("Todas")
         self.combo_filtro_cat.pack(side="left", padx=4)
 
-        # Filtro de Data Único
         self.txt_filtro_data = ctk.CTkEntry(frame_filtro, placeholder_text="Data (DD/MM/AAAA)", width=140)
         self.txt_filtro_data.pack(side="left", padx=(8, 2))
         
@@ -244,7 +254,6 @@ class AppFinanceiro(ctk.CTk):
             frame_filtro, text="📅", width=32, command=lambda: self._abrir_calendario(self.txt_filtro_data, auto_filtrar=True)
         ).pack(side="left", padx=(0, 8))
 
-        # Botões de Ação do Filtro
         ctk.CTkButton(
             frame_filtro, text="Filtrar", width=75, command=self._atualizar_interface
         ).pack(side="left", padx=4)
@@ -314,8 +323,8 @@ class AppFinanceiro(ctk.CTk):
         )
         style.map("Treeview", background=[("selected", "#2b4c7e")])
 
-        self.tabela.tag_configure("receita", foreground="#FFEE00")
-        self.tabela.tag_configure("despesa", foreground="#FF5555")
+        self.tabela.tag_configure("receita", foreground="#00FF0D")
+        self.tabela.tag_configure("despesa", foreground="#FF0000")
 
         scrollbar = ctk.CTkScrollbar(frame_tb, orientation="vertical", command=self.tabela.yview)
         self.tabela.configure(yscrollcommand=scrollbar.set)
@@ -323,6 +332,7 @@ class AppFinanceiro(ctk.CTk):
         self.tabela.grid(row=0, column=0, sticky="nsew")
         scrollbar.grid(row=0, column=1, sticky="ns")
 
+        # Barra de Ações na parte inferior da aba
         frame_acoes = ctk.CTkFrame(aba, fg_color="transparent")
         frame_acoes.grid(row=1, column=0, pady=(8, 0), sticky="ew")
 
@@ -339,6 +349,15 @@ class AppFinanceiro(ctk.CTk):
             command=self._confirmar_exclusao,
         ).pack(side="left")
 
+        # Botão de Exportar CSV posicionado no canto direito da barra inferior
+        ctk.CTkButton(
+            frame_acoes,
+            text="📁 Exportar Relatório CSV",
+            fg_color="#1f538d",
+            hover_color="#163c66",
+            command=self._exportar_csv_acao,
+        ).pack(side="right")
+
     def _construir_dashboard(self, aba):
         aba.grid_rowconfigure(0, weight=1)
         aba.grid_columnconfigure((0, 1), weight=1)
@@ -353,18 +372,14 @@ class AppFinanceiro(ctk.CTk):
         frame_rodape = ctk.CTkFrame(self, fg_color="transparent")
         frame_rodape.grid(row=6, column=0, padx=25, pady=(5, 15), sticky="ew")
 
-        if os.path.exists("logo.png"):
-            img_pil = Image.open("logo.png")
-            self.img_logo = ctk.CTkImage(light_image=img_pil, dark_image=img_pil, size=(30, 30))
-            ctk.CTkLabel(frame_rodape, image=self.img_logo, text="").pack(side="left", padx=(0, 10))
-
-        ctk.CTkButton(
+        btn_exportar = ctk.CTkButton(
             frame_rodape,
             text="📁 Exportar Relatório CSV",
             fg_color="#1f538d",
             hover_color="#163c66",
             command=self._exportar_csv_acao,
-        ).pack(side="right")
+        )
+        btn_exportar.pack(side="right")
 
     # ----------------------------------------------------------------------
     # LÓGICA E REGRAS DE NEGÓCIO
@@ -433,12 +448,10 @@ class AppFinanceiro(ctk.CTk):
             data=data_validada,
         )
 
-        # Limpar Campos
         self.txt_desc.delete(0, "end")
         self.txt_valor.delete(0, "end")
         self.txt_data_add.delete(0, "end")
 
-        # Esconde o formulário após salvar com sucesso
         self._alternar_formulario()
 
         messagebox.showinfo("Sucesso", "Movimentação registrada com sucesso.")
@@ -497,7 +510,6 @@ class AppFinanceiro(ctk.CTk):
     def _atualizar_interface(self):
         registros = self._obter_registros_filtrados()
 
-        # 1. Atualiza Cards KPIs
         rec, desp, saldo = self.gerenciador.obter_totais(registros)
         self.lbl_val_receita.configure(text=formatar_moeda(rec))
         self.lbl_val_despesa.configure(text=formatar_moeda(desp))
@@ -505,7 +517,6 @@ class AppFinanceiro(ctk.CTk):
         cor_saldo = "#33FF00" if saldo >= 0 else "#FF5555"
         self.lbl_val_saldo.configure(text=formatar_moeda(saldo), text_color=cor_saldo)
 
-        # 2. Atualiza Tabela
         for item in self.tabela.get_children():
             self.tabela.delete(item)
 
@@ -522,7 +533,6 @@ class AppFinanceiro(ctk.CTk):
                 tags=(tag,),
             )
 
-        # 3. Atualiza Gráficos do Dashboard
         self._renderizar_graficos(registros)
 
     def _renderizar_graficos(self, registros):
@@ -533,7 +543,6 @@ class AppFinanceiro(ctk.CTk):
 
         plt.style.use("dark_background")
 
-        # Gráfico 1: Receitas x Despesas
         fig1, ax1 = plt.subplots(figsize=(4.5, 3), dpi=100)
         fig1.patch.set_facecolor("#1e222d")
         ax1.set_facecolor("#1e222d")
@@ -556,7 +565,6 @@ class AppFinanceiro(ctk.CTk):
         canvas1.draw()
         canvas1.get_tk_widget().pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Gráfico 2: Despesas por Categoria
         fig2, ax2 = plt.subplots(figsize=(4.5, 3), dpi=100)
         fig2.patch.set_facecolor("#1e222d")
         ax2.set_facecolor("#1e222d")
@@ -584,10 +592,6 @@ class AppFinanceiro(ctk.CTk):
 
         plt.close(fig1)
         plt.close(fig2)
-
-    # ----------------------------------------------------------------------
-    # MODAL DE EDIÇÃO E CONFIRMAÇÃO DE EXCLUSÃO
-    # ----------------------------------------------------------------------
 
     def _modal_editar(self):
         sel = self.tabela.selection()
@@ -670,12 +674,23 @@ class AppFinanceiro(ctk.CTk):
             self._atualizar_interface()
 
     def _exportar_csv_acao(self):
-        try:
-            self.gerenciador.exportar_csv()
-            messagebox.showinfo("Exportação Concluída", "Relatório CSV exportado com sucesso!")
-        except Exception as e:
-            messagebox.showerror("Erro ao Exportar", str(e))
-
+        caminho_arquivo = ctk.filedialog.asksaveasfilename(
+            title="Salvar Relatório CSV",
+            defaultextension=".csv",
+            filetypes=[("Arquivos CSV", "*.csv"), ("Todos os arquivos", "*.*")],
+            initialfile="relatorio_financeiro.csv"
+        )
+        if caminho_arquivo:
+            try:
+                # Caso a função exportar_csv aceite o caminho do arquivo:
+                self.gerenciador.exportar_csv(caminho_arquivo)
+                messagebox.showinfo("Exportação Concluída", f"Relatório exportado com sucesso em:\n{caminho_arquivo}")
+            except TypeError:
+                # Caso seu gerenciador salve com caminho fixo padrão:
+                self.gerenciador.exportar_csv()
+                messagebox.showinfo("Exportação Concluída", "Relatório CSV exportado com sucesso!")
+            except Exception as e:
+                messagebox.showerror("Erro ao Exportar", str(e))
 
 if __name__ == "__main__":
     app = AppFinanceiro()
